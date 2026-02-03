@@ -274,7 +274,7 @@ export default function RetirementTaxPlanner() {
           if (data.metals) setMetals(data.metals);
 
           // Load API key separately from localStorage
-          const savedApiKey = localStorage.getItem('retirement-planner-apikey');
+          const savedApiKey = window.localStorage['retirement-planner-apikey'] || '';
           if (savedApiKey) {
             setApiKey(savedApiKey);
           }
@@ -315,6 +315,29 @@ export default function RetirementTaxPlanner() {
     loadData();
   }, []);
 
+  // Save API key to localStorage whenever it changes
+  useEffect(() => {
+    if (userApiKey) {
+      try {
+        localStorage.setItem('rp-apikey', userApiKey);
+      } catch (e) {
+        console.error('Failed to save API key:', e);
+      }
+    }
+  }, [userApiKey]);
+
+  // Load API key on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rp-apikey');
+      if (saved) {
+        setApiKey(saved);
+      }
+    } catch (e) {
+      console.error('Failed to load API key:', e);
+    }
+  }, []);
+
   // Auto-fetch prices on load - DISABLED for now to prevent data corruption
   // useEffect(() => {
   //   if (!isLoading && stocks.length > 0) {
@@ -343,9 +366,8 @@ export default function RetirementTaxPlanner() {
       await window.storage.set('retirement-planner-data', JSON.stringify(data));
 
       // Save API key separately to avoid build optimization issues
-      if (userApiKey) {
-        localStorage.setItem('retirement-planner-apikey', userApiKey);
-      }
+      const apiKeyToSave = userApiKey || '';
+      window.localStorage['retirement-planner-apikey'] = apiKeyToSave;
 
       setSaveStatus('Saved successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
@@ -397,7 +419,7 @@ export default function RetirementTaxPlanner() {
           if (data.userApiKey) {
             setApiKey(data.userApiKey);
             // Also save to localStorage for persistence
-            localStorage.setItem('retirement-planner-apikey', data.userApiKey);
+            window.localStorage['retirement-planner-apikey'] = data.userApiKey;
           }
 
           // Handle scenarios - migrate old format if needed
