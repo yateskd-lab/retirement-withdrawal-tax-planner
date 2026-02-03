@@ -272,6 +272,7 @@ export default function RetirementTaxPlanner() {
           if (data.stocks) setStocks(data.stocks);
           if (data.crypto) setCrypto(data.crypto);
           if (data.metals) setMetals(data.metals);
+          if (data.apiKey) setApiKey(data.apiKey);
 
           // Handle scenarios - migrate old format if needed
           if (data.scenarios) {
@@ -331,6 +332,7 @@ export default function RetirementTaxPlanner() {
         scenarios,
         activeScenarioId,
         scenarioCounter,
+        apiKey,
         savedAt: new Date().toISOString()
       };
 
@@ -354,6 +356,7 @@ export default function RetirementTaxPlanner() {
       scenarios,
       activeScenarioId,
       scenarioCounter,
+      apiKey,
       exportedAt: new Date().toISOString()
     };
 
@@ -381,6 +384,7 @@ export default function RetirementTaxPlanner() {
           setStocks(data.stocks || stocks);
           setCrypto(data.crypto || []);
           setMetals(data.metals || []);
+          if (data.apiKey) setApiKey(data.apiKey);
 
           // Handle scenarios - migrate old format if needed
           if (data.scenarios) {
