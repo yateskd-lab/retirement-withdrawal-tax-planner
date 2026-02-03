@@ -272,7 +272,12 @@ export default function RetirementTaxPlanner() {
           if (data.stocks) setStocks(data.stocks);
           if (data.crypto) setCrypto(data.crypto);
           if (data.metals) setMetals(data.metals);
-          if (data.userApiKey) setApiKey(data.userApiKey);
+
+          // Load API key separately from localStorage
+          const savedApiKey = localStorage.getItem('retirement-planner-apikey');
+          if (savedApiKey) {
+            setApiKey(savedApiKey);
+          }
 
           // Handle scenarios - migrate old format if needed
           if (data.scenarios) {
@@ -332,11 +337,16 @@ export default function RetirementTaxPlanner() {
         scenarios,
         activeScenarioId,
         scenarioCounter,
-        userApiKey,
         savedAt: new Date().toISOString()
       };
 
       await window.storage.set('retirement-planner-data', JSON.stringify(data));
+
+      // Save API key separately to avoid build optimization issues
+      if (userApiKey) {
+        localStorage.setItem('retirement-planner-apikey', userApiKey);
+      }
+
       setSaveStatus('Saved successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
     } catch (error) {
@@ -356,7 +366,7 @@ export default function RetirementTaxPlanner() {
       scenarios,
       activeScenarioId,
       scenarioCounter,
-      userApiKey,
+      userApiKey: userApiKey || '',
       exportedAt: new Date().toISOString()
     };
 
@@ -384,7 +394,11 @@ export default function RetirementTaxPlanner() {
           setStocks(data.stocks || stocks);
           setCrypto(data.crypto || []);
           setMetals(data.metals || []);
-          if (data.userApiKey) setApiKey(data.userApiKey);
+          if (data.userApiKey) {
+            setApiKey(data.userApiKey);
+            // Also save to localStorage for persistence
+            localStorage.setItem('retirement-planner-apikey', data.userApiKey);
+          }
 
           // Handle scenarios - migrate old format if needed
           if (data.scenarios) {
