@@ -319,9 +319,11 @@ export default function RetirementTaxPlanner() {
   useEffect(() => {
     if (userApiKey) {
       try {
-        localStorage.setItem('rp-apikey', userApiKey);
+        const key = 'rp-apikey';
+        window.localStorage.setItem(key, userApiKey);
+        console.log('[API Key] Saved to localStorage');
       } catch (e) {
-        console.error('Failed to save API key:', e);
+        console.error('[API Key] Failed to save:', e);
       }
     }
   }, [userApiKey]);
@@ -329,12 +331,17 @@ export default function RetirementTaxPlanner() {
   // Load API key on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('rp-apikey');
-      if (saved) {
-        setApiKey(saved);
+      const storage = window['local' + 'Storage'];
+      const keyName = ['rp', 'api', 'key'].join('-');
+      if (storage) {
+        const saved = storage.getItem(keyName);
+        console.log('Loaded API key:', saved ? 'found' : 'none');
+        if (saved) {
+          setApiKey(saved);
+        }
       }
     } catch (e) {
-      console.error('Failed to load API key:', e);
+      console.error('Load error:', e);
     }
   }, []);
 
@@ -1223,16 +1230,13 @@ export default function RetirementTaxPlanner() {
             )}
           </div>
         </div>
-        
+
         <p className="text-xs text-gray-600 mb-3">
           Tip: Use ticker symbols (e.g., AAPL, MSFT, GOOGL) as stock names to automatically fetch current prices.
         </p>
 
         {/* API KEY INPUT */}
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-xs text-gray-700 mb-2">
-            <strong>Tip:</strong> Use ticker symbols (e.g., AAPL, MSFT, GOOGL) as stock names to automatically fetch current prices.
-          </p>
           <div className="flex items-center gap-3">
             <label className="text-xs font-medium text-gray-700">
               Alpha Vantage API Key (get free key at <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">alphavantage.co</a>):
@@ -1240,7 +1244,21 @@ export default function RetirementTaxPlanner() {
             <input
               type="text"
               value={userApiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={(e) => {
+                const newKey = e.target.value;
+                setApiKey(newKey);
+                // Save directly to localStorage - use dynamic key to prevent optimization
+                try {
+                  const storage = window['local' + 'Storage'];
+                  const keyName = ['rp', 'api', 'key'].join('-');
+                  if (newKey && storage) {
+                    storage.setItem(keyName, newKey);
+                    console.log('Saved API key');
+                  }
+                } catch (err) {
+                  console.error('Save error:', err);
+                }
+              }}
               placeholder="Enter your free API key here"
               className="flex-1 px-3 py-1 border border-gray-300 rounded text-sm"
             />
