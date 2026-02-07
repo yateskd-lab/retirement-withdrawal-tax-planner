@@ -272,12 +272,7 @@ export default function RetirementTaxPlanner() {
           if (data.stocks) setStocks(data.stocks);
           if (data.crypto) setCrypto(data.crypto);
           if (data.metals) setMetals(data.metals);
-
-          // Load API key separately from localStorage
-          const savedApiKey = window.localStorage['retirement-planner-apikey'] || '';
-          if (savedApiKey) {
-            setApiKey(savedApiKey);
-          }
+          if (data.userApiKey) setApiKey(data.userApiKey);
 
           // Handle scenarios - migrate old format if needed
           if (data.scenarios) {
@@ -315,36 +310,6 @@ export default function RetirementTaxPlanner() {
     loadData();
   }, []);
 
-  // Save API key to localStorage whenever it changes
-  useEffect(() => {
-    if (userApiKey) {
-      try {
-        const key = 'rp-apikey';
-        window.localStorage.setItem(key, userApiKey);
-        console.log('[API Key] Saved to localStorage');
-      } catch (e) {
-        console.error('[API Key] Failed to save:', e);
-      }
-    }
-  }, [userApiKey]);
-
-  // Load API key on mount
-  useEffect(() => {
-    try {
-      const storage = window['local' + 'Storage'];
-      const keyName = ['rp', 'api', 'key'].join('-');
-      if (storage) {
-        const saved = storage.getItem(keyName);
-        console.log('Loaded API key:', saved ? 'found' : 'none');
-        if (saved) {
-          setApiKey(saved);
-        }
-      }
-    } catch (e) {
-      console.error('Load error:', e);
-    }
-  }, []);
-
   // Auto-fetch prices on load - DISABLED for now to prevent data corruption
   // useEffect(() => {
   //   if (!isLoading && stocks.length > 0) {
@@ -370,11 +335,10 @@ export default function RetirementTaxPlanner() {
         savedAt: new Date().toISOString()
       };
 
-      await window.storage.set('retirement-planner-data', JSON.stringify(data));
+      // Add API key separately to prevent optimization
+      data.userApiKey = userApiKey;
 
-      // Save API key separately to avoid build optimization issues
-      const apiKeyToSave = userApiKey || '';
-      window.localStorage['retirement-planner-apikey'] = apiKeyToSave;
+      await window.storage.set('retirement-planner-data', JSON.stringify(data));
 
       setSaveStatus('Saved successfully!');
       setTimeout(() => setSaveStatus(''), 3000);
@@ -395,9 +359,11 @@ export default function RetirementTaxPlanner() {
       scenarios,
       activeScenarioId,
       scenarioCounter,
-      userApiKey: userApiKey || '',
       exportedAt: new Date().toISOString()
     };
+
+    // Add API key separately to prevent optimization
+    data.userApiKey = userApiKey;
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -423,11 +389,7 @@ export default function RetirementTaxPlanner() {
           setStocks(data.stocks || stocks);
           setCrypto(data.crypto || []);
           setMetals(data.metals || []);
-          if (data.userApiKey) {
-            setApiKey(data.userApiKey);
-            // Also save to localStorage for persistence
-            window.localStorage['retirement-planner-apikey'] = data.userApiKey;
-          }
+          if (data.userApiKey) setApiKey(data.userApiKey);
 
           // Handle scenarios - migrate old format if needed
           if (data.scenarios) {
@@ -1244,21 +1206,7 @@ export default function RetirementTaxPlanner() {
             <input
               type="text"
               value={userApiKey}
-              onChange={(e) => {
-                const newKey = e.target.value;
-                setApiKey(newKey);
-                // Save directly to localStorage - use dynamic key to prevent optimization
-                try {
-                  const storage = window['local' + 'Storage'];
-                  const keyName = ['rp', 'api', 'key'].join('-');
-                  if (newKey && storage) {
-                    storage.setItem(keyName, newKey);
-                    console.log('Saved API key');
-                  }
-                } catch (err) {
-                  console.error('Save error:', err);
-                }
-              }}
+              onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your free API key here"
               className="flex-1 px-3 py-1 border border-gray-300 rounded text-sm"
             />
